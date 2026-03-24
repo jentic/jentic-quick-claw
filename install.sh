@@ -175,8 +175,18 @@ if os.path.exists(cfg_path):
         cfg = json.load(open(cfg_path))
     except Exception:
         pass
-# Gateway: listen on all interfaces
+# Gateway: listen on all interfaces, allow Tailscale origin
 cfg.setdefault('gateway', {})['bind'] = 'lan'
+allowed = cfg['gateway'].setdefault('controlUi', {}).setdefault('allowedOrigins', [
+    'http://localhost:18789', 'http://127.0.0.1:18789'
+])
+import os
+ts_dns = os.environ.get('TS_DNS', '')
+use_https = os.environ.get('USE_HTTPS', 'false') == 'true'
+if ts_dns:
+    ts_origin = ('https://' if use_https else 'http://') + ts_dns + ('' if use_https else ':18789')
+    if ts_origin not in allowed:
+        allowed.append(ts_origin)
 json.dump(cfg, open(cfg_path, 'w'), indent=4)
 print('OpenClaw config written')
 PYEOF
@@ -420,6 +430,20 @@ except:
     sleep 2
 done
 
+# ── Step 18: Background auto-approve device pairing ─────────────────────────
+# When the user opens the dashboard and enters the token, a device pairing
+# request is created. We approve it automatically so they never get stuck.
+(
+  MAX=150  # 150 x 2s = 5 min
+  for i in $(seq 1 $MAX); do
+    RESULT=$(docker exec openclaw openclaw devices approve --latest 2>&1)
+    if echo "$RESULT" | grep -qi "approved\|success"; then
+      break
+    fi
+    sleep 2
+  done
+) &
+
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -442,5 +466,6 @@ fi
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "  All services are only reachable via Tailscale."
+echo "  Device pairing: approved automatically when you first log in."
 echo "  Filebrowser: no login required — Tailscale is your auth."
 echo ""
