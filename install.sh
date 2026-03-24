@@ -80,7 +80,7 @@ echo ""
 prompt "What should this machine be called on your Tailscale network?"
 prompt "Press Enter to use the default: claw-stack"
 CLAW_HOSTNAME_INPUT=""
-read -r -p "Hostname: " CLAW_HOSTNAME_INPUT || true
+read -r -p "Hostname: " CLAW_HOSTNAME_INPUT < /dev/tty || true
 CLAW_HOSTNAME="${CLAW_HOSTNAME_INPUT:-claw-stack}"
 hostnamectl set-hostname "$CLAW_HOSTNAME"
 success "Hostname set to: $CLAW_HOSTNAME"
