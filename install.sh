@@ -31,7 +31,7 @@ prompt()  { echo -e "${BOLD}$*${NC}"; }
 [[ $EUID -ne 0 ]] && fatal "Run as root or with sudo"
 
 echo ""
-INSTALLER_VERSION="v1.0.0"
+INSTALLER_VERSION="v1.0.1"
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║     OpenClaw + Jentic Mini — Stack Installer         ║"
 echo "║                    $INSTALLER_VERSION                          ║"
