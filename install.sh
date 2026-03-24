@@ -89,6 +89,25 @@ CLAW_HOSTNAME="${CLAW_HOSTNAME_INPUT:-claw-stack}"
 hostnamectl set-hostname "$CLAW_HOSTNAME"
 success "Hostname set to: $CLAW_HOSTNAME"
 
+# ── Step 5b: LLM API key ──────────────────────────────────────────────────────
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  LLM CONFIGURATION"
+echo ""
+echo "  Your agent needs an LLM to think. If you have a"
+echo "  Tensorix.ai account, paste your API key below."
+echo "  (Leave blank to configure manually after setup.)"
+echo ""
+echo "  Get a key + \$50 free credits at: https://tensorix.ai"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+TENSORIX_API_KEY=""
+read -r -p "Tensorix API key (tx_...): " TENSORIX_API_KEY < /dev/tty || true
+if [[ -n "$TENSORIX_API_KEY" ]]; then
+    success "Tensorix API key saved — will configure after stack starts."
+else
+    warn "No API key entered — you can configure your LLM in the OpenClaw UI after setup."
+fi
+
 # Generate MM credentials (needed later in docker-compose + bootstrap)
 MM_ADMIN_PASS=$(openssl rand -base64 12 | tr -d '/+=' | head -c 16)
 MM_DB_PASS=$(openssl rand -base64 24 | tr -d '/+=' | head -c 32)
@@ -638,6 +657,35 @@ PYEOF
     success "OpenClaw restarted with Mattermost config"
 else
     warn "Mattermost bootstrap incomplete — bot token not obtained. Set up manually."
+fi
+
+# ── Step 16.7: Seed workspace defaults ───────────────────────────────────────
+info "Seeding workspace defaults (SOUL.md, AGENTS.md, TOOLS.md, USER.md...)..."
+docker exec openclaw openclaw setup --non-interactive --workspace /root/.openclaw/workspace 2>&1 \
+    | grep -v "^$" | sed 's/^/  /' || true
+success "Workspace files seeded"
+
+# ── Step 16.8: Configure LLM (Tensorix) ──────────────────────────────────────
+if [[ -n "$TENSORIX_API_KEY" ]]; then
+    info "Configuring Tensorix LLM..."
+    docker exec \
+        -e TENSORIX_API_KEY="$TENSORIX_API_KEY" \
+        openclaw \
+        openclaw onboard \
+            --non-interactive \
+            --auth-choice custom-api-key \
+            --custom-base-url "https://api.tensorix.ai/v1" \
+            --custom-api-key "$TENSORIX_API_KEY" \
+            --custom-model-id "z-ai/glm-4.7" \
+            --custom-compatibility openai \
+            --accept-risk \
+            --skip-channels \
+            --skip-daemon \
+            --skip-skills \
+            --skip-search \
+            --skip-ui 2>&1 \
+        | grep -v "^$" | sed 's/^/  /' || true
+    success "LLM configured: Tensorix / z-ai/glm-4.7"
 fi
 
 # ── Step 17: Retrieve Gateway Token ──────────────────────────────────────────
