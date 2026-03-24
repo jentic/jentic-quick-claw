@@ -66,7 +66,7 @@ Sign in with the same Tailscale account you used above.
 SSH into your server as root, then run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jentic/jentic-claw-stack/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/jentic/jentic-quick-claw/main/install.sh | sudo bash
 ```
 
 The script will:
