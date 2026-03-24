@@ -413,22 +413,32 @@ done
 # ── Step 18: Background auto-approve device pairing ─────────────────────────
 # When the user opens the dashboard and enters the token, a device pairing
 # request is created. We approve it automatically so they never get stuck.
-(
-  MAX=150  # 150 x 2s = 5 min
-  for i in $(seq 1 $MAX); do
-    RESULT=$(docker exec openclaw openclaw devices approve --latest 2>&1)
-    if echo "$RESULT" | grep -qi "approved\|success"; then
-      break
-    fi
-    sleep 2
-  done
-) &
+# Written to a file and run via nohup so it survives the script exiting.
+cat > /opt/claw/auto-approve-pairing.sh << 'APPROVE_EOF'
+#!/usr/bin/env bash
+MAX=150  # 150 x 2s = 5 min
+for i in $(seq 1 $MAX); do
+  RESULT=$(docker exec openclaw openclaw devices approve --latest 2>&1)
+  if echo "$RESULT" | grep -qi "approved\|success"; then
+    echo "[$(date)] Device approved." >> /tmp/auto-approve.log
+    break
+  fi
+  sleep 2
+done
+APPROVE_EOF
+chmod +x /opt/claw/auto-approve-pairing.sh
+nohup bash /opt/claw/auto-approve-pairing.sh >> /tmp/auto-approve.log 2>&1 &
+disown
+info "Device pairing approver running in background (log: /tmp/auto-approve.log)"
 
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo -e "${GREEN}${BOLD}  ✔ Stack is up and ready!${NC}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo -e "  ${YELLOW}${BOLD}⚠️  Before clicking these links, make sure your computer${NC}"
+echo -e "  ${YELLOW}${BOLD}   is connected to your Tailscale network!${NC}"
 echo ""
 echo -e "  🐾 OpenClaw:     ${CYAN}$OPENCLAW_URL${NC}"
 echo -e "  ⚡ Jentic Mini:  ${CYAN}$JENTIC_URL${NC}"
