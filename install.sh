@@ -79,10 +79,10 @@ fi
 echo ""
 prompt "What should this machine be called on your Tailscale network?"
 prompt "Press Enter to use the default: claw-stack"
-read -r -p "Hostname: " CHOSEN_HOSTNAME
-HOSTNAME="${CHOSEN_HOSTNAME:-claw-stack}"
-hostnamectl set-hostname "$HOSTNAME"
-success "Hostname set to: $HOSTNAME"
+read -r -p "Hostname: " CLAW_HOSTNAME_INPUT || true
+CLAW_HOSTNAME="${CLAW_HOSTNAME_INPUT:-claw-stack}"
+hostnamectl set-hostname "$CLAW_HOSTNAME"
+success "Hostname set to: $CLAW_HOSTNAME"
 
 # ── Step 6: Tailscale auth ────────────────────────────────────────────────────
 echo ""
@@ -95,12 +95,12 @@ echo ""
 echo "  No Tailscale account? Sign up free at https://tailscale.com"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-tailscale up --accept-dns=false --hostname="$HOSTNAME"
+tailscale up --accept-dns=false --hostname="$CLAW_HOSTNAME"
 
 TS_IP=$(tailscale ip -4 2>/dev/null || true)
 [[ -z "$TS_IP" ]] && fatal "Tailscale connected but no IP assigned — run 'tailscale status' to debug"
-tailscale set --hostname="$HOSTNAME"
-success "Tailscale IP: $TS_IP  hostname: $HOSTNAME"
+tailscale set --hostname="$CLAW_HOSTNAME"
+success "Tailscale IP: $TS_IP  hostname: $CLAW_HOSTNAME"
 
 # Get the full Tailscale DNS name (e.g. claw-stack.tail1234.ts.net)
 TS_DNS=$(tailscale status --json 2>/dev/null | python3 -c "
@@ -112,32 +112,18 @@ print(name.rstrip('.'))
 [[ -z "$TS_DNS" ]] && TS_DNS="$TS_IP"
 info "Tailscale DNS name: $TS_DNS"
 
-# ── Step 7: TLS certificates (optional) ──────────────────────────────────────
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  HTTPS / TLS (recommended)"
-echo ""
-echo "  Tailscale can issue real TLS certificates for your machine."
-echo "  To enable this:"
-echo "    1. Go to https://login.tailscale.com/admin/dns"
-echo "    2. Enable MagicDNS"
-echo "    3. Enable HTTPS Certificates"
-echo ""
-prompt "Have you enabled MagicDNS + HTTPS in the Tailscale admin? [y/N]"
-read -r -p "" HTTPS_ENABLED
-USE_HTTPS=false
-
-if [[ "${HTTPS_ENABLED,,}" == "y" ]]; then
-    info "Requesting TLS certificate for $TS_DNS ..."
-    mkdir -p "$CERTS_DIR"
-    if tailscale cert --cert-file "$CERTS_DIR/cert.pem" --key-file "$CERTS_DIR/key.pem" "$TS_DNS" 2>/dev/null; then
-        success "TLS certificate issued for $TS_DNS"
-        USE_HTTPS=true
-    else
-        warn "Certificate request failed — falling back to HTTP. You can re-run with HTTPS later."
-    fi
+# ── Step 7: TLS certificates (auto) ──────────────────────────────────────────
+# Tailscale provides free TLS certs for .ts.net names — try automatically.
+# Requires MagicDNS + HTTPS Certificates enabled in Tailscale admin.
+# Falls back to HTTP if cert isn't available yet (e.g. feature not enabled).
+info "Requesting Tailscale TLS certificate for $TS_DNS ..."
+mkdir -p "$CERTS_DIR"
+if tailscale cert --cert-file "$CERTS_DIR/cert.pem" --key-file "$CERTS_DIR/key.pem" "$TS_DNS" 2>/dev/null; then
+    success "TLS certificate issued for $TS_DNS"
+    USE_HTTPS=true
 else
-    warn "Skipping HTTPS — services will be HTTP only (still Tailscale-protected)"
+    warn "Could not get TLS cert — falling back to HTTP (still Tailscale-protected)."
+    warn "To enable HTTPS later: turn on MagicDNS + HTTPS Certificates at https://login.tailscale.com/admin/dns"
 fi
 
 # ── Step 8: Directories ───────────────────────────────────────────────────────
