@@ -449,9 +449,9 @@ echo -e "  📁 Filebrowser:  ${CYAN}$FILES_URL${NC}"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 if [[ -n "$GATEWAY_TOKEN" ]]; then
-echo -e "${YELLOW}${BOLD}  GATEWAY TOKEN (enter this in the OpenClaw web UI):${NC}"
+echo -e "${YELLOW}${BOLD}  Click to authenticate:${NC}"
 echo ""
-echo -e "  ${BOLD}$GATEWAY_TOKEN${NC}"
+echo -e "  ${CYAN}${BOLD}$OPENCLAW_URL/?token=$GATEWAY_TOKEN${NC}"
 else
 echo -e "${YELLOW}  Gateway token not ready yet. Run this to get it:${NC}"
 echo "  python3 -c \"import json; print(json.load(open('$OPENCLAW_CONFIG_DIR/openclaw.json'))['gateway']['auth']['token'])\""
