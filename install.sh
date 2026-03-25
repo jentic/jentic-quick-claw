@@ -57,7 +57,7 @@ prompt()  { echo -e "${BOLD}$*${NC}"; }
 [[ $EUID -ne 0 ]] && fatal "Run as root or with sudo"
 
 echo ""
-INSTALLER_VERSION="v1.0.9"
+INSTALLER_VERSION="v1.0.10"
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║     OpenClaw + Jentic Mini — Stack Installer         ║"
 echo "║                    $INSTALLER_VERSION                          ║"
@@ -276,20 +276,12 @@ You're running on a Tailscale-secured server. Three services are available:
 Filebrowser has no password — it's only accessible on the Tailscale network.
 
 
-## First Thing: Set Up Jentic
+## Jentic is Ready
 
 Your local Jentic Mini is already pre-configured at \`http://jentic-mini:8900\`.
-It gives you access to hundreds of APIs without managing credentials yourself.
+The Jentic skill is already installed in your workspace — you can use it immediately.
 
-Run this to install the Jentic skill:
-
-\`\`\`
-clawhub install jentic
-\`\`\`
-
-When it asks for a URL, use: \`http://jentic-mini:8900\`
-
-Your API key will be issued automatically — Jentic Mini trusts your network.
+To use it, just ask for something that requires an external API (search, send email, look up a repo, etc.) and the skill will guide you. No setup needed.
 
 ## Introduce Yourself
 
@@ -690,6 +682,16 @@ if [[ -n "$LLM_BASE_URL" && -n "$LLM_API_KEY" && -n "$LLM_MODEL_ID" ]]; then
     docker exec openclaw openclaw config set gateway.bind lan 2>&1 | grep -v "^$" | sed 's/^/  /' || true
     wait_for_container openclaw 60  # wait for gateway restart after bind change
 fi
+
+# ── Step 16.9: Install Jentic skill into workspace ───────────────────────────
+info "Installing Jentic skill into workspace..."
+SKILL_DIR="$WORKSPACE_DIR/skills/skills/jentic"
+SKILL_REFS_DIR="$SKILL_DIR/references"
+mkdir -p "$SKILL_REFS_DIR"
+curl -fsSL "https://raw.githubusercontent.com/jentic/jentic-skills/main/skills/jentic/SKILL.md"     -o "$SKILL_DIR/SKILL.md" 2>&1 | sed 's/^/  /' || true
+curl -fsSL "https://raw.githubusercontent.com/jentic/jentic-skills/main/skills/jentic/references/tools-block.md"     -o "$SKILL_REFS_DIR/tools-block.md" 2>&1 | sed 's/^/  /' || true
+chown -R 1000:1000 "$SKILL_DIR"
+success "Jentic skill installed"
 
 # ── Step 17: Retrieve Gateway Token ──────────────────────────────────────────
 info "Waiting for OpenClaw to generate gateway token..."
