@@ -33,7 +33,7 @@ prompt()  { echo -e "${BOLD}$*${NC}"; }
 [[ $EUID -ne 0 ]] && fatal "Run as root or with sudo"
 
 echo ""
-INSTALLER_VERSION="v1.0.7"
+INSTALLER_VERSION="v1.0.8"
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║     OpenClaw + Jentic Mini — Stack Installer         ║"
 echo "║                    $INSTALLER_VERSION                          ║"
@@ -90,24 +90,36 @@ hostnamectl set-hostname "$CLAW_HOSTNAME"
 success "Hostname set to: $CLAW_HOSTNAME"
 
 # ── Step 5b: LLM configuration ───────────────────────────────────────────────
+# LLM_BASE_URL, LLM_MODEL_ID, LLM_API_KEY can be pre-set in the environment
+# to provide defaults (e.g. for a workshop). Attendees can override or just
+# press Enter to accept. Leave all blank to skip and configure after setup.
+LLM_BASE_URL="${LLM_BASE_URL:-}"
+LLM_API_KEY="${LLM_API_KEY:-}"
+LLM_MODEL_ID="${LLM_MODEL_ID:-}"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  LLM CONFIGURATION"
 echo ""
 echo "  Your agent needs an OpenAI-compatible LLM API."
-echo "  Enter your API base URL, key, and model ID below."
+echo "  Press Enter to accept defaults, or type to override."
 echo "  (Leave blank to configure manually after setup.)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-LLM_BASE_URL=""
-LLM_API_KEY=""
-LLM_MODEL_ID=""
-read -r -p "LLM API base URL (e.g. https://api.openai.com/v1): " LLM_BASE_URL < /dev/tty || true
+_URL_HINT="${LLM_BASE_URL:+ [$LLM_BASE_URL]}"
+_MODEL_HINT="${LLM_MODEL_ID:+ [$LLM_MODEL_ID]}"
+_KEY_HINT="${LLM_API_KEY:+ [***pre-set***]}"
+_url_input=""
+read -r -p "LLM API base URL${_URL_HINT}: " _url_input < /dev/tty || true
+[[ -n "$_url_input" ]] && LLM_BASE_URL="$_url_input"
 if [[ -n "$LLM_BASE_URL" ]]; then
-    read -r -p "API key: " LLM_API_KEY < /dev/tty || true
-    read -r -p "Model ID (e.g. gpt-4o): " LLM_MODEL_ID < /dev/tty || true
+    _key_input=""
+    read -r -p "API key${_KEY_HINT}: " _key_input < /dev/tty || true
+    [[ -n "$_key_input" ]] && LLM_API_KEY="$_key_input"
+    _model_input=""
+    read -r -p "Model ID${_MODEL_HINT}: " _model_input < /dev/tty || true
+    [[ -n "$_model_input" ]] && LLM_MODEL_ID="$_model_input"
 fi
 if [[ -n "$LLM_BASE_URL" && -n "$LLM_API_KEY" && -n "$LLM_MODEL_ID" ]]; then
-    success "LLM config saved — will configure after stack starts."
+    success "LLM config saved ($LLM_MODEL_ID) — will configure after stack starts."
 else
     warn "LLM config skipped — configure manually in the OpenClaw UI after setup."
     LLM_BASE_URL=""
