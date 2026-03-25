@@ -2,45 +2,17 @@
 
 A one-command installer for OpenClaw on a VPS, equipped with Jentic Mini and File Browser, secured with Tailscale.
 
-You get a fully-configured [OpenClaw](https://openclaw.ai) agent with a local [Jentic Mini](https://github.com/jentic/jentic-mini) instance pre-wired and ready to use — plus Mattermost for team chat, and a web-based file browser for your agent's workspace. Everything runs in Docker, everything is private to your Tailscale network.
+<!-- You get a fully-configured [OpenClaw](https://openclaw.ai) agent with a local [Jentic Mini](https://github.com/jentic/jentic-mini) instance pre-wired and ready to use — plus Mattermost for team chat, and a web-based file browser for your agent's workspace. Everything runs in Docker, everything is private to your Tailscale network. -->
+
+You get a fully-configured [OpenClaw](https://openclaw.ai) agent with a local [Jentic Mini](https://github.com/jentic/jentic-mini) instance pre-wired and ready to use — plus a web-based file browser for your agent's workspace. Everything runs in Docker, everything is private to your Tailscale network.
 
 ---
 
-## Deploy
+## Interactive Installation
 
-You need a fresh **Ubuntu 22.04 or 24.04** server with at least **2 GB RAM**. Any VPS provider works.
+> **Before running this script**, make sure you have completed the setup steps in [What You Need Before Starting](#what-you-need-before-starting) below.
 
-### Recommended providers
-
-| Provider | Recommended spec | Monthly cost |
-|---|---|---|
-| **[Hetzner](https://console.hetzner.cloud/)** ⭐ | CX22 — 2 vCPU, 4 GB RAM | ~€4 |
-| **[DigitalOcean](https://cloud.digitalocean.com/droplets/new)** | Basic Droplet — 2 GB RAM | ~$12 |
-| **[Linode / Akamai](https://cloud.linode.com/linodes/create)** | Linode 2 GB | ~$12 |
-| **[Vultr](https://my.vultr.com/deploy/)** | Cloud Compute — 2 GB RAM | ~$12 |
-| **[OVHcloud](https://www.ovhcloud.com/en/vps/)** | VPS Starter — 2 GB RAM | ~€4 |
-| **[AWS EC2](https://console.aws.amazon.com/ec2/v2/home#LaunchInstances:)** | t3.small — 2 GB RAM | ~$15 |
-
-> Hetzner CX22 is the best value. DigitalOcean has the friendliest UI for beginners.
-
----
-
-### Option A — Interactive install (SSH)
-
-SSH into your server as root, then run:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/jentic/jentic-quick-claw/main/install.sh | sudo bash
-```
-
-The script prompts you for a machine name and walks you through Tailscale auth in your browser. Takes about 5–10 minutes.
-
----
-
-
-### Pre-selecting an LLM provider
-
-By default the installer will prompt you for an LLM base URL, API key, and model ID. You can skip those prompts by passing the values as environment variables:
+Once your server is running, SSH in and run:
 
 ```bash
 curl -fsSL "https://raw.githubusercontent.com/jentic/jentic-quick-claw/main/install.sh" | \
@@ -49,7 +21,125 @@ curl -fsSL "https://raw.githubusercontent.com/jentic/jentic-quick-claw/main/inst
        bash
 ```
 
-You will still be prompted for the **API key** — it is never pre-filled for security reasons.
+The script will prompt you for your **API key** — it is never pre-filled for security reasons.
+
+---
+
+## What You Need Before Starting
+
+### 1. An AI provider API key
+
+OpenClaw works with most major LLM providers. [Tensorix](https://tensorix.ai) is the recommended provider — ask event organisers for the registration link.
+
+You will enter this as part of the install flow.
+
+### 2. A Tailscale account
+
+[Sign up free at tailscale.com](https://tailscale.com). The free tier supports up to 100 devices.
+
+After signing up, do two things in the [Tailscale admin console](https://login.tailscale.com/admin/dns):
+1. Enable **MagicDNS** — gives your server a stable hostname like `my-agent.tail-xxxx.ts.net`
+2. Enable **HTTPS Certificates** — lets the installer get a real TLS cert for your server
+
+### 3. A Pipedream account
+
+[Sign up at pipedream.com](https://pipedream.com). Pipedream is used to connect your agent to external APIs and services.
+
+### 4. Tailscale on your laptop/phone
+
+Install the Tailscale client on the device you'll use to connect:
+- [macOS](https://tailscale.com/download/mac) · [Windows](https://tailscale.com/download/windows) · [iOS](https://tailscale.com/download/ios) · [Android](https://tailscale.com/download/android)
+
+Sign in with the same Tailscale account you used above.
+
+### 5. A server
+
+A fresh Ubuntu 22.04 or 24.04 VPS with at least **2 GB RAM** and **20 GB disk space**. See the provider table below.
+
+---
+
+## Deploy
+
+You need a fresh **Ubuntu 22.04 or 24.04** server with at least **2 GB RAM** and **20 GB disk space**. Any VPS provider works.
+
+### Recommended providers
+
+| Provider | Recommended spec | Monthly cost |
+|---|---|---|
+| **[Google Compute Engine](https://console.cloud.google.com/compute/instancesAdd)** ⭐ | e2-small — 2 vCPU, 2 GB RAM | ~$13 |
+| **[Hetzner](https://console.hetzner.cloud/)** | CX22 — 2 vCPU, 4 GB RAM | ~€4 |
+| **[DigitalOcean](https://cloud.digitalocean.com/droplets/new)** | Basic Droplet — 2 GB RAM | ~$12 |
+| **[Linode / Akamai](https://cloud.linode.com/linodes/create)** | Linode 2 GB | ~$12 |
+| **[Vultr](https://my.vultr.com/deploy/)** | Cloud Compute — 2 GB RAM | ~$12 |
+| **[OVHcloud](https://www.ovhcloud.com/en/vps/)** | VPS Starter — 2 GB RAM | ~€4 |
+| **[AWS EC2](https://console.aws.amazon.com/ec2/v2/home#LaunchInstances:)** | t3.small — 2 GB RAM | ~$15 |
+
+> Google Compute Engine is recommended — new users get $300 in free credits. DigitalOcean has the friendliest UI for beginners.
+
+<details>
+<summary><strong>Google Compute Engine</strong> (recommended)</summary>
+
+1. [Create VM](https://console.cloud.google.com/compute/instancesAdd)
+2. Machine: **E2 → e2-small**, Boot disk: Ubuntu 22.04 LTS (20 GB or more)
+3. Add your SSH key under **Security → Manage access → Add manually generated SSH keys**
+4. **Create**
+5. Once the VM is running, SSH in and run the install script (see below)
+
+</details>
+
+<details>
+<summary><strong>Hetzner</strong></summary>
+
+1. [Hetzner Cloud Console](https://console.hetzner.cloud/) → **New Server**
+2. Image: **Ubuntu 22.04**
+3. Type: **CX22** (2 vCPU, 4 GB, ~€4/mo)
+4. Add your SSH key → **Create & Buy now**
+5. Once the server is running, SSH in and run the install script (see below)
+
+</details>
+
+<details>
+<summary><strong>DigitalOcean</strong></summary>
+
+1. [Create Droplet](https://cloud.digitalocean.com/droplets/new?image=ubuntu-22-04-x64&size=s-2vcpu-4gb)
+2. Add your SSH key → **Create Droplet**
+3. Once the droplet is running, SSH in and run the install script (see below)
+
+</details>
+
+<details>
+<summary><strong>Linode / Akamai</strong></summary>
+
+1. [Create Linode](https://cloud.linode.com/linodes/create)
+2. Image: Ubuntu 22.04 LTS, Plan: **Linode 2 GB**
+3. Add your SSH key → **Create Linode**
+4. Once the Linode is running, SSH in and run the install script (see below)
+
+</details>
+
+<details>
+<summary><strong>Vultr</strong></summary>
+
+1. [Deploy](https://my.vultr.com/deploy/) → Cloud Compute, Ubuntu 22.04, 2 GB plan
+2. Add your SSH key → **Deploy Now**
+3. Once the server is running, SSH in and run the install script (see below)
+
+</details>
+
+<details>
+<summary><strong>AWS EC2</strong></summary>
+
+1. [Launch Instance](https://console.aws.amazon.com/ec2/v2/home#LaunchInstances:)
+2. AMI: Ubuntu Server 22.04 LTS, Instance type: **t3.small**
+3. Security group: allow SSH (22) and UDP 41641 (Tailscale) from your IP
+4. Add your SSH key → Launch
+5. Once the instance is running, SSH in and run the install script (see below)
+
+</details>
+
+---
+
+### LLM Providers
 
 Any OpenAI-compatible provider works. Just swap in the base URL and model ID:
 
@@ -60,135 +150,40 @@ Any OpenAI-compatible provider works. Just swap in the base URL and model ID:
 | Anthropic (via proxy) | your proxy URL | `claude-sonnet-4-5` |
 | Local (Ollama) | `http://localhost:11434/v1` | `llama3` |
 
----
+<!-- ### Option A — Interactive install (SSH)
 
-### Option B — Automated install (cloud-init, no SSH needed)
-
-Most VPS providers let you paste a **User Data** script when creating a server. It runs on first boot — you never need to SSH in.
-
-**Prerequisites:**
-- A [Tailscale auth key](https://login.tailscale.com/admin/settings/keys) — create a reusable one in Tailscale admin settings. This lets the server join your tailnet without an interactive browser step.
-
-**User Data script** (paste this when creating your server):
+SSH into your server as root, then run:
 
 ```bash
-#!/bin/bash
-export TS_AUTHKEY="tskey-auth-REPLACE_ME"   # ← your Tailscale auth key
-curl -fsSL https://raw.githubusercontent.com/jentic/jentic-quick-claw/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/jentic/jentic-quick-claw/main/install.sh | sudo bash
 ```
 
-**Where to find the User Data field:**
+The script prompts you for a machine name and walks you through Tailscale auth in your browser. Takes about 5–10 minutes.
 
-<details>
-<summary><strong>Hetzner</strong> — "Cloud config" field</summary>
-
-1. [Hetzner Cloud Console](https://console.hetzner.cloud/) → **New Server**
-2. Image: **Ubuntu 22.04**
-3. Type: **CX22** (2 vCPU, 4 GB, ~€4/mo)
-4. Scroll down to **Cloud config** — paste the script there
-5. Add your SSH key → **Create & Buy now**
-
-</details>
-
-<details>
-<summary><strong>DigitalOcean</strong> — "Advanced Options → User Data"</summary>
-
-1. [Create Droplet](https://cloud.digitalocean.com/droplets/new?image=ubuntu-22-04-x64&size=s-2vcpu-4gb)
-2. Scroll to **Advanced Options** → enable **Add Initialization scripts**
-3. Paste the script → **Create Droplet**
-
-</details>
-
-<details>
-<summary><strong>Linode / Akamai</strong> — "Advanced Options → Add User Data"</summary>
-
-1. [Create Linode](https://cloud.linode.com/linodes/create)
-2. Image: Ubuntu 22.04 LTS, Plan: **Linode 2 GB**
-3. **Advanced Options** → **Add User Data** → paste the script
-4. **Create Linode**
-
-</details>
-
-<details>
-<summary><strong>Vultr</strong> — "Server Settings → User Data"</summary>
-
-1. [Deploy](https://my.vultr.com/deploy/) → Cloud Compute, Ubuntu 22.04, 2 GB plan
-2. **Server Settings** → **User Data** → paste the script
-3. **Deploy Now**
-
-</details>
-
-<details>
-<summary><strong>AWS EC2</strong> — "Advanced details → User data"</summary>
-
-1. [Launch Instance](https://console.aws.amazon.com/ec2/v2/home#LaunchInstances:)
-2. AMI: Ubuntu Server 22.04 LTS, Instance type: **t3.small**
-3. **Advanced details** → **User data** → paste the script
-4. Security group: allow SSH (22) and UDP 41641 (Tailscale) from your IP
-5. Launch
-
-</details>
-
-<details>
-<summary><strong>Google Compute Engine</strong> — "Advanced options → Startup script"</summary>
-
-1. [Create VM](https://console.cloud.google.com/compute/instancesAdd)
-2. Machine: **E2 → e2-small**, Boot disk: Ubuntu 22.04 LTS
-3. **Advanced options → Management → Automation → Startup script** → paste the script
-4. **Create**
-
-</details>
+--- -->
 
 ---
 
 ## What You Get
 
-| Service | What it is |
+<!-- | Service | What it is |
 |---|---|
 | **OpenClaw** | Your personal AI agent. Chat with it via a web UI or Mattermost. Connects to any LLM (Anthropic, OpenAI, etc.). Runs 24/7. |
 | **Jentic Mini** | A local API execution engine. Gives your agent access to hundreds of real-world APIs (GitHub, Slack, Stripe, Gmail, and more) without you managing credentials per-tool. |
 | **Mattermost** | A self-hosted team chat server. Your agent has a bot account and is connected automatically. Chat with your agent like you would on Slack. |
+| **Filebrowser** | A simple web UI to browse and edit your agent's workspace files — memory, notes, config. | -->
+
+| Service | What it is |
+|---|---|
+| **OpenClaw** | Your personal AI agent. Chat with it via a web UI. Connects to any LLM (Anthropic, OpenAI, etc.). Runs 24/7. |
+| **Jentic Mini** | A local API execution engine. Gives your agent access to hundreds of real-world APIs (GitHub, Slack, Stripe, Gmail, and more) without you managing credentials per-tool. |
 | **Filebrowser** | A simple web UI to browse and edit your agent's workspace files — memory, notes, config. |
 
 All services are only reachable on your **Tailscale network** (your private tailnet). Nothing is exposed to the public internet.
 
 ---
 
-## What You Need Before Starting
-
-### 1. A server
-
-A fresh Ubuntu 22.04 or 24.04 VPS with at least **2GB RAM**. See the provider table above.
-
-### 2. A Tailscale account
-
-[Sign up free at tailscale.com](https://tailscale.com). The free tier supports up to 100 devices.
-
-After signing up, do two things in the [Tailscale admin console](https://login.tailscale.com/admin/dns):
-1. Enable **MagicDNS** — gives your server a stable hostname like `my-agent.tail-xxxx.ts.net`
-2. Enable **HTTPS Certificates** — lets the installer get a real TLS cert for your server
-
-If you want to use the automated cloud-init deploy, also create a [reusable auth key](https://login.tailscale.com/admin/settings/keys).
-
-### 3. An AI provider API key
-
-OpenClaw works with most major LLM providers. You'll need one:
-- [Anthropic](https://console.anthropic.com) — Claude (recommended)
-- [OpenAI](https://platform.openai.com) — GPT-4 / o-series
-- [Google](https://aistudio.google.com) — Gemini
-
-You enter this in the OpenClaw web UI after the install — not during the script.
-
-### 4. Tailscale on your laptop/phone
-
-Install the Tailscale client on the device you'll use to connect:
-- [macOS](https://tailscale.com/download/mac) · [Windows](https://tailscale.com/download/windows) · [iOS](https://tailscale.com/download/ios) · [Android](https://tailscale.com/download/android)
-
-Sign in with the same Tailscale account you used above.
-
----
-
-## Install (manual / interactive)
+<!-- ## Install (manual / interactive)
 
 SSH into your server as root, then run:
 
@@ -220,19 +215,14 @@ At the end, you'll see something like:
   🐾 OpenClaw:     https://claw-stack.tail-xxxx.ts.net
   ⚡ Jentic Mini:  https://claw-stack.tail-xxxx.ts.net:8900
   📁 Filebrowser:  https://claw-stack.tail-xxxx.ts.net:8080
-  💬 Mattermost:   https://claw-stack.tail-xxxx.ts.net:8065
 
   Click to authenticate:
   https://claw-stack.tail-xxxx.ts.net/?token=361357c19ee411f3...
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  Mattermost credentials:
-    Username: admin
-    Password: <generated>
 ```
 
----
+--- -->
 
 ## First-Time Setup
 
@@ -249,11 +239,11 @@ Make sure Tailscale is running on your device, then click the authentication lin
 
 Once in the OpenClaw UI, configure a model by entering your API key. Your agent will start up and introduce itself.
 
-### Step 3: Connect to Mattermost
+<!-- ### Step 3: Connect to Mattermost
 
-Open Mattermost at `https://claw-stack.tail-xxxx.ts.net:8065`. Log in with the admin credentials printed at the end of the install. Your agent's bot (`@claw-agent`) is already in the `claw` team and connected to OpenClaw.
+Open Mattermost at `https://claw-stack.tail-xxxx.ts.net:8065`. Log in with the admin credentials printed at the end of the install. Your agent's bot (`@claw-agent`) is already in the `claw` team and connected to OpenClaw. -->
 
-### Step 4: Install the Jentic Skill
+### Step 3: Install the Jentic Skill
 
 Tell your agent:
 
@@ -267,7 +257,7 @@ clawhub install jentic
 
 When asked for a URL, enter: `http://jentic-mini:8900`
 
-### Step 5: Explore the Workspace
+### Step 4: Explore the Workspace
 
 Open Filebrowser at `https://claw-stack.tail-xxxx.ts.net:8080` to browse your agent's memory and config files. No login required — Tailscale handles authentication.
 
@@ -275,7 +265,7 @@ Open Filebrowser at `https://claw-stack.tail-xxxx.ts.net:8080` to browse your ag
 
 ## Architecture
 
-```
+<!-- ```
 Your device (Tailscale)
         │
         │  HTTPS (Tailscale cert)
@@ -296,11 +286,32 @@ OpenClaw  Jentic Mini  Filebrowser  Mattermost
     └── workspace/ ─────────────────────┘
          (host-mounted)           Postgres
                                    :5432
+``` -->
+
+```
+Your device (Tailscale)
+        │
+        │  HTTPS (Tailscale cert)
+        ▼
+┌──────────────────────────────────┐
+│  Caddy (reverse proxy)           │
+│  :443  → OpenClaw                │
+│  :8900 → Jentic Mini             │
+│  :8080 → Filebrowser             │
+└──────────────┬───────────────────┘
+               │ Docker network
+    ┌──────────┼────────────┐
+    ▼          ▼            ▼
+OpenClaw  Jentic Mini  Filebrowser
+:18789      :8900          :80
+    │
+    └── workspace/
+         (host-mounted)
 ```
 
 - **Firewall**: iptables DOCKER-USER chain blocks all public access to container ports. Only Tailscale traffic (`tailscale0`) and container-to-container traffic are allowed through.
 - **Caddy** terminates TLS with a Tailscale-issued certificate and proxies to each service on the Docker bridge network.
-- **OpenClaw** connects to Mattermost via its bot token — chat with your agent directly in Mattermost channels.
+<!-- - **OpenClaw** connects to Mattermost via its bot token — chat with your agent directly in Mattermost channels. -->
 - The **workspace directory** (`/opt/claw/workspace`) is mounted into both OpenClaw and Filebrowser.
 
 ---
@@ -315,7 +326,6 @@ docker compose ps
 
 # View logs
 docker compose logs -f openclaw
-docker compose logs -f mattermost
 
 # Restart a service
 docker compose restart openclaw
@@ -363,12 +373,16 @@ fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /
 python3 -c "import json; print(json.load(open('/opt/claw/openclaw-config/openclaw.json'))['gateway']['auth']['token'])"
 ```
 
-**Mattermost bot not responding**
+**"OpenClaw is only available over HTTPS" error in the control UI**
+- Ensure **HTTPS Certificates** is enabled in the [Tailscale admin console](https://login.tailscale.com/admin/dns)
+- If you enabled HTTPS after creating your VM, you may need to recreate the VM instance for the certificate to be issued correctly
+
+<!-- **Mattermost bot not responding**
 ```bash
 docker logs mattermost
 # Check the bot token is in openclaw.json:
 python3 -c "import json; print(json.load(open('/opt/claw/openclaw-config/openclaw.json'))['channels']['mattermost']['token'])"
-```
+``` -->
 
 ---
 
@@ -385,7 +399,7 @@ python3 -c "import json; print(json.load(open('/opt/claw/openclaw-config/opencla
 
 - [OpenClaw](https://openclaw.ai) — the agent runtime
 - [Jentic](https://jentic.com) — the API execution layer
-- [Mattermost](https://mattermost.com) — self-hosted team chat
+<!-- - [Mattermost](https://mattermost.com) — self-hosted team chat -->
 - [Tailscale](https://tailscale.com) — the network security layer
 - [Caddy](https://caddyserver.com) — the reverse proxy
 - [Filebrowser](https://filebrowser.org) — the workspace file UI
