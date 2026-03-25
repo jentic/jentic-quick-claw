@@ -57,7 +57,7 @@ prompt()  { echo -e "${BOLD}$*${NC}"; }
 [[ $EUID -ne 0 ]] && fatal "Run as root or with sudo"
 
 echo ""
-INSTALLER_VERSION="v1.0.10"
+INSTALLER_VERSION="v1.0.11"
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║     OpenClaw + Jentic Mini — Stack Installer         ║"
 echo "║                    $INSTALLER_VERSION                          ║"
@@ -685,7 +685,7 @@ fi
 
 # ── Step 16.9: Install Jentic skill into workspace ───────────────────────────
 info "Installing Jentic skill into workspace..."
-SKILL_DIR="$WORKSPACE_DIR/skills/skills/jentic"
+SKILL_DIR="$WORKSPACE_DIR/skills/jentic"
 SKILL_REFS_DIR="$SKILL_DIR/references"
 mkdir -p "$SKILL_REFS_DIR"
 curl -fsSL "https://raw.githubusercontent.com/jentic/jentic-skills/main/skills/jentic/SKILL.md"     -o "$SKILL_DIR/SKILL.md" 2>&1 | sed 's/^/  /' || true
