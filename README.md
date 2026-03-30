@@ -134,6 +134,8 @@ curl -fsSL "https://raw.githubusercontent.com/jentic/jentic-quick-claw/main/inst
 
 The script will prompt you for your **API key** — it is never pre-filled for security reasons.
 
+> Having trouble with pairing? See [Troubleshooting: "Pairing required"](#pairing-required-in-the-control-ui-and-clicking-connect-doesnt-work).
+
 ### LLM Providers
 
 Any OpenAI-compatible provider works. Just swap in the base URL and model ID:
@@ -395,6 +397,16 @@ python3 -c "import json; print(json.load(open('/opt/claw/openclaw-config/opencla
 **"OpenClaw is only available over HTTPS" error in the control UI**
 - Ensure **HTTPS Certificates** is enabled in the [Tailscale admin console](https://login.tailscale.com/admin/dns)
 - If you enabled HTTPS after creating your VM, you may need to recreate the VM instance for the certificate to be issued correctly
+
+**"Pairing required" in the control UI and clicking Connect doesn't work**
+
+If auto-pairing fails and refreshing the page doesn't resolve it:
+1. Press `Ctrl+C` in your terminal to stop the installer if it's still running
+2. Run the following command to manually approve the device:
+```bash
+docker exec openclaw openclaw devices approve --latest
+```
+3. Refresh the control UI — you should now be connected
 
 <!-- **Mattermost bot not responding**
 ```bash
